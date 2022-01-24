@@ -1,0 +1,21 @@
+<div id="<%= dom_id task %>" class="task <%= 'done' if task.done? %>">
+  <div class="title">
+    <p class="id">
+      #<%= task.id %>
+    </p>
+
+    <p class="name">
+      <strong><%= task.name %></strong>
+    </p>
+
+    <p>
+      <% unless task.done? %>
+        <%= link_to "Complete", task, data: { "turbo-method": :delete } %>
+      <% end %>
+    </p>
+  </div>
+
+  <p class="description">
+    <%= task.description %>
+  </p>
+</div>
