@@ -11,6 +11,6 @@ COPY Gemfile.lock Gemfile.lock
 RUN bundle install
 COPY . .
 
-ENV PORT=8080
+ENV PORT=80
 
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
