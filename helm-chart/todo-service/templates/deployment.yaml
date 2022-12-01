@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-service.fullname" . }}
+  labels:
+    {{- include "todo-service.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "todo-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "todo-service.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "todo-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command: ['bundle', 'exec', 'rake', 'db:prepare']
+          env:
+          - name: DB_CONNECTION_URL
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: db_connection_endpoint
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: password
+          - name: DATABASE_URL
+            value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_CONNECTION_URL)/todo_app
+          - name: PORT
+            value: "80"
+          - name: RAILS_ENV
+            value: "development"
+          {{- with (index .Values.ingress.hosts 0) }}
+          - name: RAILS_HOSTS
+            value: {{ .host }}
+          {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+          - name: DB_CONNECTION_URL
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: db_connection_endpoint
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: password
+          - name: DATABASE_URL
+            value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_CONNECTION_URL)/todo_app
+          - name: PORT
+            value: "80"
+          - name: RAILS_ENV
+            value: "{{ .Values.rails_env }}"
+          {{- with (index .Values.ingress.hosts 0) }}
+          - name: RAILS_HOSTS
+            value: {{ .host }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
