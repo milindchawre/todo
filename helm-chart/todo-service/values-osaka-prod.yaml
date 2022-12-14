@@ -59,7 +59,7 @@ ingress:
     alb.ingress.kubernetes.io/group.name: wetravel-eks-prod-group
     ## SSL Settings
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:995105043624:certificate/948c7a8e-350d-4ee0-92c3-2ccf362cc218
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-3:995105043624:certificate/3cb9e1a7-79cc-4c38-a05b-9bcc3097d30e
     # External DNS route53 config
     external-dns.alpha.kubernetes.io/hostname: todo-service-region2.prod.wetravel.ml
   hosts:
