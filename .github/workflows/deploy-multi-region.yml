@@ -1,0 +1,66 @@
+name: Multi Region Deploy APP on EKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker Image Tag'     
+        required: true
+
+jobs:
+  deploy:
+    name: Helm Deploy on EKS cluster (multi-region deploy)
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION1: ap-northeast-2
+      AWS_REGION2: ap-northeast-3
+      EKS_REGION1_CLUSTER_NAME: milindchawre-eks-seoul-prod
+      EKS_REGION2_CLUSTER_NAME: milindchawre-eks-osaka-prod
+      IAM_ASSUME_ROLE: arn:aws:iam::995105043624:role/milindchawre_oidc_role
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials (Region1)
+      uses: aws-actions/configure-aws-credentials@v1.7.0
+      with:
+        role-to-assume: ${{ env.IAM_ASSUME_ROLE }}
+        aws-region: ${{ env.AWS_REGION1 }}
+    
+    - name: kubeconfig (Region1 cluster)
+      run: |
+        aws eks update-kubeconfig --name ${{ env.EKS_REGION1_CLUSTER_NAME }} --region ${{ env.AWS_REGION1 }}
+        echo 'KUBE_CONFIG_DATA1<<EOF' >> $GITHUB_ENV
+        echo $(cat ~/.kube/config | base64) >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
+    
+    - name: helm deploy (Region1 cluster)
+      uses: koslib/helm-eks-action@v1.26.0
+      env:
+        KUBE_CONFIG_DATA: ${{ env.KUBE_CONFIG_DATA1 }}
+      with:
+        command: helm upgrade --install todo-service -f helm-chart/todo-service/values-seoul-prod.yaml -n app --set image.tag=${{ github.event.inputs.image_tag }} ./helm-chart/todo-service
+    
+    - name: Configure AWS Credentials (Region2)
+      uses: aws-actions/configure-aws-credentials@v1.7.0
+      with:
+        role-to-assume: ${{ env.IAM_ASSUME_ROLE }}
+        aws-region: ${{ env.AWS_REGION2 }}
+    
+    - name: kubeconfig (Region2 cluster)
+      run: |
+        aws eks update-kubeconfig --name ${{ env.EKS_REGION2_CLUSTER_NAME }} --region ${{ env.AWS_REGION2 }}
+        echo 'KUBE_CONFIG_DATA2<<EOF' >> $GITHUB_ENV
+        echo $(cat ~/.kube/config | base64) >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
+    
+    - name: helm deploy (Region2 cluster)
+      uses: koslib/helm-eks-action@v1.26.0
+      env:
+        KUBE_CONFIG_DATA: ${{ env.KUBE_CONFIG_DATA2 }}
+      with:
+        command: helm upgrade --install todo-service -f helm-chart/todo-service/values-osaka-prod.yaml -n app --set image.tag=${{ github.event.inputs.image_tag }} ./helm-chart/todo-service
