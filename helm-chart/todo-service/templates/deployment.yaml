@@ -36,7 +36,12 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: db-creds
-                key: db_connection_endpoint
+                key: {{ .Values.primary_db_writer_endpoint }}
+          - name: DB_PORT
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: port
           - name: DB_USERNAME
             valueFrom:
               secretKeyRef:
@@ -48,7 +53,7 @@ spec:
                 name: db-creds
                 key: password
           - name: DATABASE_URL
-            value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_CONNECTION_URL)/todo_app
+            value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_CONNECTION_URL):$(DB_PORT)/todo_app
           - name: PORT
             value: "80"
           - name: RAILS_ENV
@@ -82,7 +87,12 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: db-creds
-                key: db_connection_endpoint
+                key: {{ .Values.primary_db_writer_endpoint }}
+          - name: DB_PORT
+            valueFrom:
+              secretKeyRef:
+                name: db-creds
+                key: port
           - name: DB_USERNAME
             valueFrom:
               secretKeyRef:
@@ -94,7 +104,7 @@ spec:
                 name: db-creds
                 key: password
           - name: DATABASE_URL
-            value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_CONNECTION_URL)/todo_app
+            value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_CONNECTION_URL):$(DB_PORT)/todo_app
           - name: PORT
             value: "80"
           - name: RAILS_ENV

@@ -1,4 +1,4 @@
-name: Build and Deploy APP on EKS
+name: Single Region Build and Deploy APP on EKS
 
 on:
   workflow_dispatch:
