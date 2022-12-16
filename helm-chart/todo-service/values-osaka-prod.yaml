@@ -61,9 +61,38 @@ ingress:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-3:995105043624:certificate/3cb9e1a7-79cc-4c38-a05b-9bcc3097d30e
     # External DNS route53 config
-    external-dns.alpha.kubernetes.io/hostname: todo-service-region2.prod.wetravel.ml
+    external-dns.alpha.kubernetes.io/hostname: todo-app-global.prod.wetravel.ml
+    external-dns.alpha.kubernetes.io/alias: "true"
+    external-dns.alpha.kubernetes.io/aws-failover: SECONDARY
+    external-dns.alpha.kubernetes.io/aws-health-check-id: a116dbba-4b03-4af5-bb44-13859ba5bfd8
+    external-dns.alpha.kubernetes.io/set-identifier: osaka-region-todo-app-url
   hosts:
-    - host: todo-service-region2.prod.wetravel.ml
+    - host: todo-app-global.prod.wetravel.ml
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+ingress2:
+  enabled: true
+  className: "alb"
+  annotations:
+    # Ingress Core Settings  
+    #kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    # Share ALB accross multiple ingresses
+    alb.ingress.kubernetes.io/group.name: wetravel-eks-prod-group
+    ## SSL Settings
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-3:995105043624:certificate/3cb9e1a7-79cc-4c38-a05b-9bcc3097d30e
+    # External DNS route53 config
+    external-dns.alpha.kubernetes.io/hostname: todo-app-osaka.prod.wetravel.ml
+  hosts:
+    - host: todo-app-osaka.prod.wetravel.ml
       paths:
         - path: /*
           pathType: ImplementationSpecific

@@ -59,8 +59,12 @@ spec:
           - name: RAILS_ENV
             value: "development"
           {{- with (index .Values.ingress.hosts 0) }}
-          - name: RAILS_HOSTS
-            value: {{ .host }}
+          - name: RAILS_HOST1
+            value: "{{ .host }}"
+          {{- end }}
+          {{- with (index .Values.ingress2.hosts 0) }}
+          - name: RAILS_HOST2
+            value: "{{ .host }}"
           {{- end }}
       containers:
         - name: {{ .Chart.Name }}
@@ -110,8 +114,12 @@ spec:
           - name: RAILS_ENV
             value: "{{ .Values.rails_env }}"
           {{- with (index .Values.ingress.hosts 0) }}
-          - name: RAILS_HOSTS
-            value: {{ .host }}
+          - name: RAILS_HOST1
+            value: "{{ .host }}"
+          {{- end }}
+          {{- with (index .Values.ingress2.hosts 0) }}
+          - name: RAILS_HOST2
+            value: "{{ .host }}"
           {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
